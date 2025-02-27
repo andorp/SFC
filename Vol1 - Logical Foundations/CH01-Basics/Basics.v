@@ -348,3 +348,108 @@ Proof.
 Qed.
 
 Print plus_id_example.
+
+(* https://softwarefoundations.cis.upenn.edu/lf-current/Basics.html *)
+
+Theorem plus_id_exercise : forall n m o : nat,
+  n = m -> m = o -> n + m = m + o.
+Proof.
+  intros n m o.
+  intros H1 H2.
+  rewrite -> H1.
+  rewrite <- H2.
+  reflexivity.
+Qed.
+
+Theorem mult_n_0_m_0 : forall p q : nat,
+  (p * 0) + (q * 0) = 0.
+Proof.
+  intros p q.
+  rewrite <- mult_n_O.
+  rewrite <- mult_n_O.
+  reflexivity.
+Qed.
+
+Check mult_n_O.
+(* ===> forall n : nat, 0 = n * 0 *)
+Check mult_n_Sm.
+(* ===> forall n m : nat, n * m + n = n * S m *)
+
+(* Use mult_n_Sm and mult_n_0 to prove the following theorem. (Recall that 1 is S O.)  *)
+
+Theorem mult_n_1 : forall p : nat,
+  p * 1 = p.
+Proof.
+  intros p.
+  rewrite <- mult_n_Sm.
+  rewrite <- mult_n_O.
+  simpl.
+  reflexivity.
+Qed.
+
+Theorem plus_1_neq_0_firsttry : forall n : nat,
+  (n + 1) =? 0 = false.
+Proof.
+  intros n.
+  simpl. (* does nothing! *)
+Abort.
+
+Theorem plus_1_neq_0 : forall n : nat,
+  (n + 1) =? 0 = false.
+Proof.
+  intros n. destruct n as [| n'] eqn:E.
+  - simpl.
+    reflexivity.
+  - simpl.
+    reflexivity.
+Qed.
+
+Theorem negb_involutive : forall b : bool,
+  negb (negb b) = b.
+Proof.
+  intros b. (destruct b ; reflexivity).
+Qed.
+
+Theorem andb_commutative : forall b c, andb b c = andb c b.
+Proof.
+  intros b c.
+  destruct b ; destruct c ; reflexivity.
+Qed.
+
+Theorem andb3_exchange :
+  forall b c d, andb (andb b c) d = andb (andb b d) c.
+Proof.
+  intros b c d.
+  destruct b ; destruct c ; destruct d ; reflexivity.
+Qed.
+
+Theorem andb_true_elim2 : forall b c : bool,
+  andb b c = true -> c = true.
+Proof.
+  intros b c H1.
+
+  destruct b
+    ; destruct c
+    ; try reflexivity
+    ; simpl in H1
+    ; rewrite <- H1
+    ; reflexivity .
+Qed.
+
+Theorem plus_1_neq_0' : forall n : nat,
+  (n + 1) =? 0 = false.
+Proof.
+  intros [|n] ; reflexivity.
+Qed.
+
+Theorem andb_commutative'' :
+  forall b c, andb b c = andb c b.
+Proof.
+  intros [] [] ; reflexivity.
+Qed.
+
+Theorem zero_nbeq_plus_1 : forall n : nat,
+  0 =? (n + 1) = false.
+Proof.
+  intros [] ; reflexivity.
+Qed.
