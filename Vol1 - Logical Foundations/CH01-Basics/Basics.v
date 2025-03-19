@@ -453,3 +453,321 @@ Theorem zero_nbeq_plus_1 : forall n : nat,
 Proof.
   intros [] ; reflexivity.
 Qed.
+
+Theorem identity_fn_applied_twice :
+  forall (f : bool -> bool),
+  (forall (x : bool), f x = x) ->
+  forall (b : bool), f (f b) = b.
+Proof.
+  intros f H1 b.
+  rewrite -> H1.
+  rewrite -> H1.
+  reflexivity.
+Qed.
+
+(* Now state and prove a theorem negation_fn_applied_twice similar
+ * to the previous one but where the second hypothesis says that
+ * the function f has the property that f x = negb x.
+ *)
+(* Definition manual_grade_for_negation_fn_applied_twice
+  : option (nat * string) := None. *)
+
+Theorem manual_grade_for_negation_fn_applied_twice :
+  forall (b : bool) , negb (negb b) = b .
+Proof.
+  intros b.
+  destruct b ; reflexivity.
+Qed.
+
+Theorem andb_eq_orb :
+  forall (b c : bool),
+  (andb b c = orb b c) ->
+  b = c.
+Proof.
+  intros b c H1.
+  destruct b
+    ; destruct c
+    ; try reflexivity
+    ; simpl in H1
+    ; discriminate
+    .
+Qed.
+
+Inductive letter : Type :=
+  | A | B | C | D | F .
+
+Inductive modifier : Type :=
+  | Plus | Natural | Minus .
+
+Inductive grade : Type :=
+  Grade (l:letter) (m:modifier) .
+
+(*
+data Grade = Grader { l :: Letter , m :: Modifier }
+*)
+
+Inductive comparison : Type :=
+  | Eq (* "equal" *)
+  | Lt (* "less than" *)
+  | Gt (* "greater than" *)
+  . 
+
+Definition letter_comparison (l1 l2 : letter) : comparison :=
+  match l1, l2 with
+  | A, A => Eq
+  | A, _ => Gt
+  | B, A => Lt
+  | B, B => Eq
+  | B, _ => Gt
+  | C, (A | B) => Lt
+  | C, C => Eq
+  | C, _ => Gt
+  | D, (A | B | C) => Lt
+  | D, D => Eq
+  | D, _ => Gt
+  | F, (A | B | C | D) => Lt
+  | F, F => Eq
+  end.
+
+Theorem letter_comparison_Eq :
+  forall l, letter_comparison l l = Eq.
+Proof.
+  intros l.
+  destruct l ; reflexivity.
+Qed.
+
+Definition modifier_comparison (m1 m2 : modifier) : comparison :=
+  match m1, m2 with
+  | Plus, Plus => Eq
+  | Plus, _ => Gt
+  | Natural, Plus => Lt
+  | Natural, Natural => Eq
+  | Natural, _ => Gt
+  | Minus, (Plus | Natural) => Lt
+  | Minus, Minus => Eq
+  end.
+
+Definition grade_comparison (g1 g2 : grade) : comparison :=
+  match g1 , g2 with
+  | Grade l1 m1 , Grade l2 m2 =>
+    match letter_comparison l1 l2 with
+    | Eq => modifier_comparison m1 m2
+    | cp => cp
+    end
+  end.
+
+Example test_grade_comparison1 :
+  (grade_comparison (Grade A Minus) (Grade B Plus)) = Gt.
+Proof. reflexivity. Qed.
+
+Example test_grade_comparison2 :
+  (grade_comparison (Grade A Minus) (Grade A Plus)) = Lt.
+Proof. reflexivity. Qed.
+
+Example test_grade_comparison3 :
+  (grade_comparison (Grade F Plus) (Grade F Plus)) = Eq.
+Proof. reflexivity. Qed.
+
+Example test_grade_comparison4 :
+  (grade_comparison (Grade B Minus) (Grade C Plus)) = Gt.
+Proof. reflexivity. Qed.
+
+Definition lower_letter (l : letter) : letter :=
+  match l with
+  | A => B
+  | B => C
+  | C => D
+  | D => F
+  | F => F (* Can't go lower than F! *)
+  end.
+
+Theorem lower_letter_F_is_F:
+  lower_letter F = F.
+Proof. reflexivity. Qed.
+
+Theorem lower_letter_lowers:
+  forall (l : letter),
+    letter_comparison F l = Lt ->
+    letter_comparison (lower_letter l) l = Lt.
+Proof.
+  intros l H1.
+  destruct l ; try reflexivity.
+  discriminate.
+Qed.
+
+Definition lower_grade (g : grade) : grade :=
+  match g with
+  | Grade F Plus    => Grade F Natural
+  | Grade F Natural => Grade F Minus
+  | Grade F Minus   => Grade F Minus
+
+  | Grade l m => match m with
+    | Plus    => Grade l Natural
+    | Natural => Grade l Minus
+    | Minus   => Grade (lower_letter l) Plus
+    end
+
+  end.  
+
+Example lower_grade_A_Plus :
+  lower_grade (Grade A Plus) = (Grade A Natural).
+Proof. reflexivity. Qed.
+
+Example lower_grade_A_Natural :
+  lower_grade (Grade A Natural) = (Grade A Minus).
+Proof. reflexivity. Qed.
+
+Example lower_grade_A_Minus :
+  lower_grade (Grade A Minus) = (Grade B Plus).
+Proof. reflexivity. Qed.
+
+Example lower_grade_B_Plus :
+  lower_grade (Grade B Plus) = (Grade B Natural).
+Proof. reflexivity. Qed.
+
+Example lower_grade_F_Natural :
+  lower_grade (Grade F Natural) = (Grade F Minus).
+Proof. reflexivity. Qed.
+
+Example lower_grade_twice :
+  lower_grade (lower_grade (Grade B Minus)) = (Grade C Natural).
+Proof. reflexivity. Qed.
+
+Example lower_grade_thrice :
+  lower_grade (lower_grade (lower_grade (Grade B Minus))) = (Grade C Minus).
+Proof. reflexivity. Qed.
+
+Example lower_grade_F_Minus : lower_grade (Grade F Minus) = (Grade F Minus).
+Proof. reflexivity. Qed.
+
+(*
+Theorem lower_letter_lowers:
+  forall (l : letter),
+    letter_comparison F l = Lt ->
+    letter_comparison (lower_letter l) l = Lt.
+*)
+
+Theorem lower_grade_lowers :
+  forall (g : grade) ,
+    grade_comparison (Grade F Minus) g = Lt ->
+    grade_comparison (lower_grade g) g = Lt.
+Proof.
+  intros g H1.
+  destruct g , l , m ; try reflexivity.
+  simpl in H1.
+  discriminate.
+Qed.
+
+(*
+      # late days     penalty
+         0 - 8        no penalty
+         9 - 16       lower grade by one step (A+ => A, A => A-, A- => B+, etc.)
+        17 - 20       lower grade by two steps
+          >= 21       lower grade by three steps (a whole letter)
+*)
+Definition apply_late_policy (late_days : nat) (g : grade) : grade :=
+  if late_days <? 9 then g
+  else if late_days <? 17 then lower_grade g
+  else if late_days <? 21 then lower_grade (lower_grade g)
+  else lower_grade (lower_grade (lower_grade g)).
+
+Theorem apply_late_policy_unfold :
+  forall (late_days : nat) (g : grade),
+    (apply_late_policy late_days g)
+    =
+    (if late_days <? 9 then g else
+    if late_days <? 17 then lower_grade g
+    else if late_days <? 21 then lower_grade (lower_grade g)
+    else lower_grade (lower_grade (lower_grade g))).
+Proof.
+  intros. reflexivity.
+Qed.
+
+Theorem no_penalty_for_mostly_on_time :
+  forall (late_days : nat) (g : grade),
+    (late_days <? 9 = true) ->
+    apply_late_policy late_days g = g.
+Proof.
+  intros d g H1.
+  unfold apply_late_policy.
+  rewrite H1.
+  reflexivity.
+Qed.
+
+Theorem grade_lowered_once :
+  forall (late_days : nat) (g : grade),
+    (late_days <? 9 = false) ->
+    (late_days <? 17 = true) ->
+    (apply_late_policy late_days g) = (lower_grade g).
+Proof.
+  intros l g H1 H2.
+  unfold apply_late_policy.
+  rewrite H1 , H2.
+  reflexivity.
+Qed.
+
+Inductive bin : Type :=
+  | Z
+  | B0 (n : bin)
+  | B1 (n : bin)
+  .
+
+(*
+        decimal               binary                          unary
+           0                       Z                              O
+           1                    B1 Z                            S O
+           2                B0 (B1 Z)                        S (S O)
+           3                B1 (B1 Z)                     S (S (S O))
+           4            B0 (B0 (B1 Z))                 S (S (S (S O)))
+           5            B1 (B0 (B1 Z))              S (S (S (S (S O))))
+           6            B0 (B1 (B1 Z))           S (S (S (S (S (S O)))))
+           7            B1 (B1 (B1 Z))        S (S (S (S (S (S (S O))))))
+           8        B0 (B0 (B0 (B1 Z)))    S (S (S (S (S (S (S (S O)))))))
+*)
+
+Fixpoint incr (m:bin) : bin :=
+  match m with
+  | Z    => B1 Z
+  | B0 n => B1 n        (* 2n     => 2n + 1             *)
+  | B1 n => B0 (incr n) (* 2n + 1 => 2n + 2 = 2 (n + 1) *)
+  end.
+
+Fixpoint bin_to_nat (m:bin) : nat :=
+  match m with
+  | Z    => 0
+  | B0 n =>     2 * (bin_to_nat n)
+  | B1 n => 1 + 2 * (bin_to_nat n)
+  end.
+
+Example test_bin_incr1 : (incr (B1 Z)) = B0 (B1 Z).
+Proof. reflexivity. Qed.
+
+Example test_bin_incr2 : (incr (B0 (B1 Z))) = B1 (B1 Z).
+Proof. reflexivity. Qed.
+
+Example test_bin_incr3 : (incr (B1 (B1 Z))) = B0 (B0 (B1 Z)).
+Proof. reflexivity. Qed.
+
+Example test_bin_to_nat1 : bin_to_nat (B0 (B1 Z)) = 2.
+Proof. reflexivity. Qed.
+
+Example test_bin_to_nat2 :
+        bin_to_nat (incr (B1 Z)) = 1 + bin_to_nat (B1 Z).
+Proof. reflexivity. Qed.
+
+Example test_bin_to_nat3 :
+        bin_to_nat (incr (incr (B1 Z))) = 2 + bin_to_nat (B1 Z).
+Proof. reflexivity. Qed.
+
+Theorem bin_to_nat_incr : forall (b:bin) , bin_to_nat (incr b) = S (bin_to_nat b).
+Proof.
+  intros b. induction b as [|b _|b H1].
+  - reflexivity.
+  - reflexivity.
+  - simpl.
+    rewrite H1.
+    rewrite <- plus_n_O.
+    rewrite <- plus_n_O.
+    rewrite <- plus_n_Sm.
+    reflexivity.
+Qed.
