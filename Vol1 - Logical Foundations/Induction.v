@@ -1,6 +1,6 @@
-Print LoadPath.
+From LF Require Export Basics.
 
-(* From LF Require Export Basics. *)
+(* Require Export Basics. *)
 
 Theorem add_0_r_firsttry : forall (n:nat),
   n + 0 = n.
@@ -75,4 +75,32 @@ Proof.
   - simpl.
     rewrite IHn'.
     reflexivity.
+Qed.
+
+Fixpoint double (n:nat) :=
+  match n with
+  | O => O
+  | S m => S (S (double m))
+  end.
+
+Lemma double_plus : forall (n:nat) , double n = n + n.
+Proof.
+  intros n.
+  induction n as [|n IH].
+  - reflexivity.
+  - simpl.
+    rewrite -> IH.
+    rewrite <- plus_n_Sm.
+    reflexivity.
+
+Qed.
+
+Theorem eqb_refl : forall (n:nat),
+  (n =? n) = true.
+Proof.
+  intros n.
+  induction n as [|n IH].
+  - reflexivity.
+  - simpl.
+    apply IH.
 Qed.
