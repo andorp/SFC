@@ -311,6 +311,19 @@ Fixpoint bin_to_nat (m:bin) : nat :=
   | B1 n => 1 + 2 * (bin_to_nat n)
   end.
 
+Theorem bin_to_nat_incr : forall (b:bin) , bin_to_nat (incr b) = S (bin_to_nat b).
+Proof.
+  intros b. induction b as [|b _|b H1].
+  - reflexivity.
+  - reflexivity.
+  - simpl.
+    rewrite H1.
+    rewrite <- plus_n_O.
+    rewrite <- plus_n_O.
+    rewrite <- plus_n_Sm.
+    reflexivity.
+Qed.
+
 Theorem bin_to_nat_pres_incr : forall (b : bin),
   bin_to_nat (incr b) = 1 + bin_to_nat b.
 Proof.
@@ -325,3 +338,67 @@ Proof.
     reflexivity.
 Qed.
 
+(*
+Inductive bin : Type :=
+  | Z
+  | B0 (n : bin) 2*n
+  | B1 (n : bin) 2*n + 1
+  .
+*)
+
+Fixpoint nat_to_bin (n:nat) : bin :=
+  match n with
+  | O     => Z
+  | (S n) =>
+    match nat_to_bin n with
+    | Z    => B1 Z
+    | B0 x => B1 x
+    | B1 x => B0 (incr x)
+    end
+  end.
+
+Example nat_to_bin_test1 : (nat_to_bin 0) = Z.
+Proof. reflexivity. Qed.
+
+Example nat_to_bin_test2 : (nat_to_bin 1) = B1 Z.
+Proof. reflexivity. Qed.
+
+Example nat_to_bin_test3 : (nat_to_bin 2) = B0 (B1 Z).
+Proof. reflexivity. Qed.
+
+Example nat_to_bin_test4 : (nat_to_bin 3) = B1 (B1 Z).
+Proof. reflexivity. Qed.
+
+Example nat_to_bin_test5 : (nat_to_bin 4) = B0 (B0 (B1 Z)).
+Proof. reflexivity. Qed.
+
+Theorem nat_bin_nat : forall n,
+  bin_to_nat (nat_to_bin n) = n.
+Proof.
+  intros n.
+  induction n as [|n IHn] ; try reflexivity.
+  simpl.
+  destruct (nat_to_bin n) as [|x|x] eqn:H1.
+  - simpl.
+    simpl in IHn.
+    rewrite IHn.
+    reflexivity.
+  - simpl.
+    simpl in IHn.
+    rewrite IHn.
+    reflexivity.
+  - simpl.
+    simpl in IHn.
+    rewrite bin_to_nat_incr.
+    simpl.
+    rewrite <- plus_n_Sm.
+    rewrite IHn.
+    reflexivity.
+Qed.
+
+Lemma double_incr : forall (n : nat),
+  double (S n) = S (S (double n)).
+Proof.
+  intros n.
+  reflexivity.
+Qed.
