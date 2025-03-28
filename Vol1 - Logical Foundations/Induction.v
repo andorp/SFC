@@ -260,20 +260,68 @@ Proof.
   - rewrite <- mult_n_O , <- mult_n_O, <- mult_n_O.
     reflexivity.
   - rewrite <- mult_n_Sm , <- mult_n_Sm , <- mult_n_Sm.
+    rewrite <- (add_assoc (n * p) n (m * p + m)).
+    rewrite (add_comm n (m * p + m)).
+    rewrite <- (add_assoc (m * p) m n).
+    rewrite (add_comm m n).
+    rewrite (add_assoc (n * p) (m * p) (n + m)).
     rewrite IHp.
-    assert (n + (m * p + m) = (n + m * p + m)) as H1.
-      { admit.
-      }
-    assert (m * p + (n + m) = n + (m * p + m)) as H2.
-      { admit.
-      }
-    rewrite <- add_assoc.
-    rewrite H2.
-    rewrite add_assoc.
     reflexivity.
-Admitted.
+Qed.
 
 Theorem mult_assoc : forall (n m p : nat),
   n * (m * p) = (n * m) * p.
 Proof.
-Admitted.
+  intros n m p.
+  induction n as [|n IHn].
+  - reflexivity.
+  - simpl.
+    rewrite (mult_plus_distr_r m (n * m) p).
+    rewrite IHn.
+    reflexivity.
+Qed.
+
+Theorem add_shuffle3' : forall (n m p : nat),
+  n + (m + p) = m + (n + p).
+Proof.
+  intros n m p.
+  rewrite (add_comm n (m + p)).
+  rewrite (add_comm n p).
+  rewrite (add_assoc m p n).
+  reflexivity.
+Qed.
+
+Inductive bin : Type :=
+  | Z
+  | B0 (n : bin)
+  | B1 (n : bin)
+  .
+
+Fixpoint incr (m:bin) : bin :=
+  match m with
+  | Z    => B1 Z
+  | B0 n => B1 n        (* 2n     => 2n + 1             *)
+  | B1 n => B0 (incr n) (* 2n + 1 => 2n + 2 = 2 (n + 1) *)
+  end.
+
+Fixpoint bin_to_nat (m:bin) : nat :=
+  match m with
+  | Z    => 0
+  | B0 n =>     2 * (bin_to_nat n)
+  | B1 n => 1 + 2 * (bin_to_nat n)
+  end.
+
+Theorem bin_to_nat_pres_incr : forall (b : bin),
+  bin_to_nat (incr b) = 1 + bin_to_nat b.
+Proof.
+  intros b.
+  simpl.
+  induction b as [|b _|b IH] ; try reflexivity.
+  - simpl.
+    rewrite IH.
+    rewrite <- (plus_n_O (S (bin_to_nat b))).
+    rewrite <- (plus_n_O (bin_to_nat b)).
+    rewrite (plus_n_Sm (bin_to_nat b) (bin_to_nat b)).
+    reflexivity.
+Qed.
+
