@@ -299,10 +299,25 @@ Inductive bin : Type :=
 
 Fixpoint incr (m:bin) : bin :=
   match m with
-  | Z    => B1 Z
+  | Z    => B1 Z        (*  0     => 2*0 + 1*)
   | B0 n => B1 n        (* 2n     => 2n + 1             *)
   | B1 n => B0 (incr n) (* 2n + 1 => 2n + 2 = 2 (n + 1) *)
   end.
+
+Example test_bin_incr0 : (incr Z) = (B1 Z).
+Proof. reflexivity. Qed.
+
+Example test_bin_incr1 : (incr (B1 Z)) = B0 (B1 Z).
+Proof. reflexivity. Qed.
+
+Example test_bin_incr2 : (incr (B0 (B1 Z))) = B1 (B1 Z).
+Proof. reflexivity. Qed.
+
+Example test_bin_incr3 : (incr (B1 (B1 Z))) = B0 (B0 (B1 Z)).
+Proof. reflexivity. Qed.
+
+Example test_bin_incr4 : (incr (B0 Z)) = (B1 Z).
+Proof. reflexivity. Qed.
 
 Fixpoint bin_to_nat (m:bin) : nat :=
   match m with
@@ -337,14 +352,6 @@ Proof.
     rewrite (plus_n_Sm (bin_to_nat b) (bin_to_nat b)).
     reflexivity.
 Qed.
-
-(*
-Inductive bin : Type :=
-  | Z
-  | B0 (n : bin) 2*n
-  | B1 (n : bin) 2*n + 1
-  .
-*)
 
 Fixpoint nat_to_bin (n:nat) : bin :=
   match n with
@@ -402,3 +409,109 @@ Proof.
   intros n.
   reflexivity.
 Qed.
+
+Definition double_bin (b:bin) : bin :=
+  match b with
+  | Z    => Z         (* 0    => 0    *)
+  | B0 x => B0 (B0 x) (* 2x   => 2*2x *)
+  | B1 x => B0 (B1 x) (* 2x+1 => 2(2x + 1) *)
+  end.
+
+Example double_bin_zero : double_bin Z = Z.
+Proof. reflexivity. Qed.
+
+Lemma double_incr_bin : forall (b:bin),
+    double_bin (incr b) = incr (incr (double_bin b)).
+Proof.
+  intros b.
+  destruct b as [|b|b]; reflexivity.
+Qed.
+
+Fixpoint normalize (b:bin) : bin :=
+  match b with
+  | Z    => Z
+  | B0 b => double_bin (normalize b)
+  | B1 b => B1 (normalize b)
+  end.
+
+Example normalize_test0 : (normalize Z) = Z.
+Proof. reflexivity. Qed.
+
+Example normalize_test1 : (normalize (B0 Z)) = Z.
+Proof. reflexivity. Qed.
+
+Example normalize_test2 : (normalize (B0 (B0 Z))) = Z.
+Proof. reflexivity. Qed.
+
+Example normalize_test3 : (normalize (B1 (B0 Z))) = B1 Z.
+Proof. reflexivity. Qed.
+
+Example normalize_test4 : (normalize (B1 (B0 (B0 Z)))) = B1 Z.
+Proof. reflexivity. Qed.
+
+Example normalize_test5 : (normalize (B0 (B1 (B0 (B0 Z))))) = B0 (B1 Z).
+Proof. reflexivity. Qed.
+
+Example lemma0Ex1 : (nat_to_bin (S O)) = incr (nat_to_bin O).
+Proof. reflexivity. Qed.
+
+Example lemma0Ex2 : (nat_to_bin (S (S O))) = incr (nat_to_bin (S O)).
+Proof. reflexivity. Qed.
+
+Example lemma0Ex3 : (nat_to_bin (S (S (S O)))) = incr (nat_to_bin (S (S O))).
+Proof. reflexivity. Qed.
+
+Lemma lemma0 : forall (n : nat) ,
+  (nat_to_bin (S n)) = incr (nat_to_bin n).
+Proof.
+  intros n.
+  destruct n as [|n].
+  - reflexivity.
+  - simpl.
+    destruct (nat_to_bin n) ; reflexivity.
+Qed.
+
+Example lemma1Ex1 : nat_to_bin (O + O) = double_bin (nat_to_bin O).
+Proof. reflexivity. Qed.
+
+Example lemma1Ex2 : nat_to_bin (1 + 1) = double_bin (nat_to_bin 1).
+Proof. reflexivity. Qed.
+
+Example lemma1Ex3 : nat_to_bin (2 + 2) = double_bin (nat_to_bin 2).
+Proof. reflexivity. Qed.
+
+Lemma lemma1 : forall (n : nat) ,
+  nat_to_bin (n + n) = double_bin (nat_to_bin n).
+Proof.
+  intros n.
+  induction n as [|n IH].
+  - reflexivity.
+  - rewrite <- plus_n_Sm.
+    rewrite (lemma0 (S n + n)).
+    rewrite plus_Sn_m.
+    rewrite (lemma0 (n + n)).
+    rewrite IH.
+    rewrite (lemma0 n).
+    rewrite double_incr_bin.
+    reflexivity.
+Qed.
+
+Theorem bin_nat_bin : forall (b:bin),
+  nat_to_bin (bin_to_nat b) = normalize b.
+Proof.
+  intros b.
+  induction b as [|b IH|b IH].
+  - reflexivity.
+  - simpl.
+    rewrite
+      <- (plus_n_O (bin_to_nat b)) ,
+      (lemma1 (bin_to_nat b))      , 
+      IH.
+    reflexivity.
+  - simpl.
+    rewrite <- (plus_n_O (bin_to_nat b)).
+    rewrite (lemma1 (bin_to_nat b)).
+    rewrite IH.
+    destruct (normalize b) ; reflexivity.
+Qed.
+
