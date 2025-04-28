@@ -57,7 +57,7 @@ namespace BoolExamples
   infix:35 " && " => andb
   infix:30 " || " => orb
 
-  #eval Bool.true && Bool.false
+  -- #eval Bool.true && Bool.false
 
   example : (Bool.true || Bool.false) = Bool.true :=
     rfl
@@ -407,7 +407,6 @@ theorem lowerGradeLowers
       cases l <;> cases m <;> try rfl
       contradiction
 
-
 inductive Grd where
   | GrdDot (l : Letter) (m : Modifier)
   deriving
@@ -428,7 +427,7 @@ def modifier (g : Grd) : Modifier :=
 end Grd
 
 -- usage
-#eval (Grd.GrdDot Letter.A Modifier.Plus).letter  -- → Letter.A
+-- #eval (Grd.GrdDot Letter.A Modifier.Plus).letter  -- → Letter.A
 
 structure GradeX where
   letter   : Letter
@@ -445,3 +444,66 @@ structure SuperGradeX extends GradeX where
 
 instance : Coe SuperGradeX GradeX where
   coe g := { letter := g.letter , modifier := g.modifier }
+
+def applyLatePolicy (lateDays : Nat) (g : Grade) : Grade :=
+  if decide (lateDays < 9) then g
+  else if decide (lateDays < 17) then lowerGrade g
+  else if decide (lateDays < 21) then lowerGrade (lowerGrade g)
+  else lowerGrade (lowerGrade (lowerGrade g))
+
+theorem noPenalityForMostlyOnTime
+  (lateDays : Nat)
+  (g : Grade)
+  (h : (lateDays < 9)) :
+  -------------------------------
+  applyLatePolicy lateDays g = g
+:= by
+  unfold applyLatePolicy
+  simp [h]
+
+theorem GradeLoweredOnce
+  (lateDays : Nat)
+  (g : Grade)
+  (h1 : decide (lateDays < 9) = false)
+  (h2 : decide (lateDays < 17) = true) :
+  ------------------------
+  applyLatePolicy lateDays g = lowerGrade g
+:= by
+  unfold applyLatePolicy
+  rewrite [h1]
+  rewrite [h2]
+  simp
+
+inductive Bin where
+  | z
+  | b0 (b : Bin)
+  | b1 (b : Bin)
+  deriving
+    Repr,
+    DecidableEq
+
+def incr : Bin -> Bin
+  | Bin.z    => Bin.b1 Bin.z
+  | Bin.b0 b => Bin.b1 b
+  | Bin.b1 b => Bin.b0 (incr b)
+
+def binToNat : Bin -> Nat
+  | Bin.z    => 0
+  | Bin.b0 b =>     2 * (binToNat b)
+  | Bin.b1 b => 1 + 2 * (binToNat b)
+
+theorem binToNatIncr
+  (b : Bin) :
+  -----------
+  binToNat (incr b) = Nat.succ (binToNat b)
+:= by
+  induction b with
+  | z =>
+      rfl
+  | b0 x ih =>
+      simp [incr, binToNat, Nat.add_comm 1 (2 * binToNat x)]
+  | b1 x ih =>
+      simp [incr, binToNat]
+      rewrite [ih]
+      simp [Nat.mul_add]
+      simp [Nat.add_comm 1 (2 * binToNat x)]
