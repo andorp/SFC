@@ -1,0 +1,10 @@
+name = "LF"
+version = "0.1.0"
+defaultTargets = ["lf"]
+
+[[lean_lib]]
+name = "LF"
+
+[[lean_exe]]
+name = "lf"
+root = "Main"
