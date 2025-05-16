@@ -1,5 +1,4 @@
-(* From LF Require Export Induction. *)
-Module NatList.
+From LF Require Export Induction.
 
 Inductive natprod : Type :=
   | pair (n1 n2 : nat).
@@ -278,7 +277,7 @@ Example test_included2: included [1;2;2] [2;1;4;1] = false.
 Proof. reflexivity. Qed.
 
 Lemma nat_eqb_refl : forall (n : nat) ,
-  Nat.eqb n n = true.
+  Nat.eqb n n = Datatypes.true.
 Proof.
   intros n.
   induction n as [|n IH].
@@ -463,7 +462,7 @@ Proof.
       reflexivity.
 Qed.
 
-Fixpoint eqblist (l1 l2 : natlist) : bool :=
+Fixpoint eqblist (l1 l2 : natlist) : Datatypes.bool :=
   match l1 , l2 with
   | []         , []         => true
   | ( _ ::  _) , []         => false

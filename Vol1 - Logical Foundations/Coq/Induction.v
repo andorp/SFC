@@ -94,7 +94,7 @@ Proof.
     reflexivity.
 Qed.
 
-Theorem eqb_refl : forall (n:nat),
+(* Theorem eqb_refl : forall (n:nat),
   (n =? n) = true.
 Proof.
   intros n.
@@ -113,7 +113,7 @@ Proof.
   - rewrite IH.
     rewrite negb_involutive.
     reflexivity.
-Qed.
+Qed. *)
 
 Theorem mult_0_plus' : forall (n m : nat),
   (n + 0 + 0) * m = n * m.
@@ -170,7 +170,7 @@ Proof.
     reflexivity.
 Qed.
 
-Theorem eqnb_refl : forall (n : nat),
+(* Theorem eqnb_refl : forall (n : nat),
   (n =? n) = true.
 Proof.
   intros n.
@@ -178,7 +178,7 @@ Proof.
   - reflexivity.
   - simpl.
     apply IHn.
-Qed.
+Qed. *)
 
 Theorem add_shuffle3 : forall (n m p : nat),
   n + (m + p) = m + (n + p).
@@ -191,7 +191,7 @@ Proof.
   reflexivity.
 Qed.
 
-Theorem plus_leb_compat_l : forall (n m p : nat),
+(* Theorem plus_leb_compat_l : forall (n m p : nat),
   n <=? m = true -> (p + n) <=? (p + m) = true.
 Proof.
   intros n m p H1.
@@ -200,9 +200,9 @@ Proof.
     apply H1.
   - simpl.
     apply IH.
-Qed.
+Qed. *)
 
-Theorem leb_refl : forall (n:nat),
+(* Theorem leb_refl : forall (n:nat),
   (n <=? n) = true.
 Proof.
   intros n.
@@ -210,28 +210,28 @@ Proof.
   - reflexivity.
   - simpl.
     apply IHn.
-Qed.
+Qed. *)
 
-Theorem zero_neqb_S : forall (n:nat),
+(* Theorem zero_neqb_S : forall (n:nat),
   0 =? (S n) = false.
 Proof.
   intros n.
   reflexivity.
-Qed.
+Qed. *)
 
-Theorem andb_false_r : forall (b:bool),
-  andb b false = false.
+(* Theorem andb_false_r : forall (b:boolean),
+  andb b ffalse = ffalse.
 Proof.
   intros b.
   destruct b ; reflexivity.
-Qed.
+Qed. *)
 
-Theorem S_neqb_0 : forall (n:nat),
+(* Theorem S_neqb_0 : forall (n:nat),
   (S n) =? 0 = false.
 Proof.
   intros n.
   reflexivity.
-Qed.
+Qed. *)
 
 Theorem mult_1_l : forall (n:nat), 1 * n = n.
 Proof.
@@ -241,7 +241,7 @@ Proof.
   apply plus_n_O.
 Qed.
 
-Theorem all3_spec : forall (b c : bool),
+(* Theorem all3_spec : forall (b c : bool),
   orb
     (andb b c)
     (orb (negb b)
@@ -250,7 +250,7 @@ Theorem all3_spec : forall (b c : bool),
 Proof.
   intros b c.
   destruct b,c ; reflexivity.
-Qed.
+Qed. *)
 
 Theorem mult_plus_distr_r : forall (n m p : nat),
   (n + m) * p = (n * p) + (m * p).

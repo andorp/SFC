@@ -103,3 +103,17 @@ theorem mult_assoc
     rw [Nat.succ_mul n m]
     rw [mult_plus_distr]
     rw [ih]
+
+inductive bin where
+  | Z
+  | B0 (b : bin)
+  | B1 (b : bin)
+  deriving
+    Repr ,
+    DecidableEq
+
+def binxToNat (b : bin) : Nat :=
+  match b with
+  | bin.Z    =>                   0
+  | bin.B0 b =>     2 * binxToNat b
+  | bin.B1 b => 1 + 2 * binxToNat b
