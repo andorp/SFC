@@ -34,61 +34,61 @@ Qed.
 
 From Coq Require Export String.
 
-Inductive boolean : Type :=
-  | ttrue
-  | ffalse
+Inductive bool : Type :=
+  | true
+  | false
   .
 
-Definition negb (b:boolean) : boolean :=
+Definition negb (b:bool) : bool :=
   match b with
-  | ttrue => ffalse
-  | ffalse => ttrue
+  | true => false
+  | false => true
   end.
 
-Definition andb (b1 b2 : boolean) : boolean :=
+Definition andb (b1 b2 : bool) : bool :=
   match b1 with
-  | ttrue => b2
-  | ffalse => ffalse
+  | true => b2
+  | false => false
   end.
 
-Definition orb (b1 b2 : boolean) : boolean :=
+Definition orb (b1 b2 : bool) : bool :=
   match b1 with
-  | ttrue => ttrue
-  | ffalse => b2
+  | true => true
+  | false => b2
   end.
 
-Example test_orb1 : (orb ttrue ffalse) = ttrue.
+Example test_orb1 : (orb true false) = true.
 Proof. simpl. reflexivity. Qed.
 
 Notation "x && y" := (andb x y).
 Notation "x || y" := (orb x y).
 
-Example test_orb5 : ffalse || ffalse || ttrue = ttrue.
+Example test_orb5 : false || false || true = true.
 Proof. simpl. reflexivity. Qed.
 
 (* Exercise: 1 star, standard (nandb) *)
 
-Definition nandb (b1:boolean) (b2:boolean) : boolean :=
+Definition nandb (b1:bool) (b2:bool) : bool :=
   negb (andb b1 b2).
 
-Example test_nandb1: (nandb ttrue ffalse) = ttrue.
+Example test_nandb1: (nandb true false) = true.
 Proof. simpl. reflexivity. Qed.
 
-Example test_nandb2: (nandb ffalse ffalse) = ttrue.
+Example test_nandb2: (nandb false false) = true.
 Proof. simpl. reflexivity. Qed.
 
-Example test_nandb3: (nandb ffalse ttrue) = ttrue.
+Example test_nandb3: (nandb false true) = true.
 Proof. simpl. reflexivity. Qed.
 
-Example test_nandb4: (nandb ttrue ttrue) = ffalse.
+Example test_nandb4: (nandb true true) = false.
 Proof. simpl. reflexivity. Qed.
 
-Check ttrue.
+Check true.
 
-Check ttrue : boolean.
-Check (negb ttrue) : boolean.
+Check true : bool.
+Check (negb true) : bool.
 
-Check negb : boolean -> boolean.
+Check negb : bool -> bool.
 
 Inductive rgb : Type :=
   | red
@@ -102,29 +102,29 @@ Inductive color : Type :=
   | primary (p : rgb)
   .
 
-Definition monochrome (c : color) : boolean :=
+Definition monochrome (c : color) : bool :=
   match c with
-  | black => ttrue
-  | white => ttrue
-  | primary p => ffalse
+  | black => true
+  | white => true
+  | primary p => false
   end.
 
-Definition isred (c : color) : boolean :=
+Definition isred (c : color) : bool :=
   match c with
-  | black => ffalse
-  | white => ffalse
-  | primary red => ttrue
-  | primary _ => ffalse
+  | black => false
+  | white => false
+  | primary red => true
+  | primary _ => false
   end.
 
 Module Playground.
   Definition foo : rgb := blue.
 End Playground.
 
-Definition foo : boolean := ttrue.
+Definition foo : bool := true.
 
 Check Playground.foo : rgb.
-Check foo : boolean.
+Check foo : bool.
 
 Module TuplePlayground.
 
@@ -138,10 +138,10 @@ Module TuplePlayground.
 
   Check (bits B1 B0 B1 B0) : nybble.
 
-  Definition all_zero (nb : nybble) : boolean :=
+  Definition all_zero (nb : nybble) : bool :=
     match nb with
-    | (bits B0 B0 B0 B0) => ttrue
-    | (bits _ _ _ _) => ffalse
+    | (bits B0 B0 B0 B0) => true
+    | (bits _ _ _ _) => false
     end.
 
   Compute (all_zero (bits B1 B0 B1 B0)).
@@ -186,20 +186,20 @@ Check S : nat -> nat.
 Check pred : nat -> nat.
 Check minustwo : nat -> nat.
 
-Fixpoint even (n:nat) : boolean :=
+Fixpoint even (n:nat) : bool :=
   match n with
-  | O => ttrue
-  | S O => ffalse
+  | O => true
+  | S O => false
   | S (S n') => even n'
   end.
 
-Definition odd (n:nat) : boolean :=
+Definition odd (n:nat) : bool :=
   negb (even n).
 
-Example test_odd1: odd 1 = ttrue.
+Example test_odd1: odd 1 = true.
 Proof. simpl. reflexivity. Qed.
 
-Example test_odd2: odd 4 = ffalse.
+Example test_odd2: odd 4 = false.
 Proof. Show. simpl. Show. reflexivity. Show. Qed.
 
 Module NatPlayground2.
@@ -266,60 +266,60 @@ Notation "x * y" := (mult x y)
 
 Check ((0 + 1) + 1) : nat.
 
-Fixpoint eqb (n m : nat) : boolean :=
+Fixpoint eqb (n m : nat) : bool :=
   match n with
   | O =>
     match m with
-    | O => ttrue
-    | S m' => ffalse
+    | O => true
+    | S m' => false
     end
   | S n' =>
     match m with
-    | O => ffalse
+    | O => false
     | S m' => eqb n' m'
     end
   end.
 
-Fixpoint leb (n m : nat) : boolean :=
+Fixpoint leb (n m : nat) : bool :=
   match n with
-  | O => ttrue
+  | O => true
   | S n' =>
     match m with
-    | O => ffalse
+    | O => false
     | S m' => leb n' m'
     end
   end.
 
-Example test_leb1: leb 2 2 = ttrue.
+Example test_leb1: leb 2 2 = true.
 Proof. simpl. reflexivity. Qed.
 
-Example test_leb2: leb 2 4 = ttrue.
+Example test_leb2: leb 2 4 = true.
 Proof. simpl. reflexivity. Qed.
 
-Example test_leb3: leb 4 2 = ffalse.
+Example test_leb3: leb 4 2 = false.
 Proof. simpl. reflexivity. Qed.
 
 Notation "x =? y" := (eqb x y) (at level 70) : nat_scope.
 Notation "x <=? y" := (leb x y) (at level 70) : nat_scope.
 
-Example test_leb3': (4 <=? 2) = ffalse.
+Example test_leb3': (4 <=? 2) = false.
 Proof. simpl. reflexivity. Qed.
 
 (* Exercise: 1 star, standard (ltb) *)
 
 Definition ltb (n m : nat)
-  : boolean
+  : bool
   := (n <=? m) && negb (n =? m) .
   
 Notation "x <? y" := (ltb x y) (at level 70) : nat_scope.
 
-Example test_ltb1: (ltb 2 2) = ffalse.
+Example test_ltb1: (ltb 2 2) = false.
 Proof. reflexivity. Qed.
 
-Example test_ltb2: (ltb 2 4) = ttrue.
+Example test_ltb2: (ltb 2 4) = true.
 Proof. reflexivity. Qed.
 
-Example test_ltb3: (ltb 4 2) = ffalse.
+Example test_ltb3: (ltb 4 2) = false.
 Proof. reflexivity. Qed.
 
 Theorem plus_O_n : forall n : nat, 0 + n = n.
@@ -388,14 +388,14 @@ Proof.
 Qed.
 
 Theorem plus_1_neq_0_firsttry : forall n : nat,
-  (n + 1) =? 0 = ffalse.
+  (n + 1) =? 0 = false.
 Proof.
   intros n.
   simpl. (* does nothing! *)
 Abort.
 
 Theorem plus_1_neq_0 : forall n : nat,
-  (n + 1) =? 0 = ffalse.
+  (n + 1) =? 0 = false.
 Proof.
   intros n. destruct n as [| n'] eqn:E.
   - simpl.
@@ -404,7 +404,7 @@ Proof.
     reflexivity.
 Qed.
 
-Theorem negb_involutive : forall b : boolean,
+Theorem negb_involutive : forall b : bool,
   negb (negb b) = b.
 Proof.
   intros b. (destruct b ; reflexivity).
@@ -423,8 +423,8 @@ Proof.
   destruct b ; destruct c ; destruct d ; reflexivity.
 Qed.
 
-Theorem andb_ttrue_elim2 : forall b c : boolean,
-  andb b c = ttrue -> c = ttrue.
+Theorem andb_true_elim2 : forall b c : bool,
+  andb b c = true -> c = true.
 Proof.
   intros b c H1.
 
@@ -437,7 +437,7 @@ Proof.
 Qed.
 
 Theorem plus_1_neq_0' : forall n : nat,
-  (n + 1) =? 0 = ffalse.
+  (n + 1) =? 0 = false.
 Proof.
   intros [|n] ; reflexivity.
 Qed.
@@ -449,15 +449,15 @@ Proof.
 Qed.
 
 Theorem zero_nbeq_plus_1 : forall n : nat,
-  0 =? (n + 1) = ffalse.
+  0 =? (n + 1) = false.
 Proof.
   intros [] ; reflexivity.
 Qed.
 
 Theorem identity_fn_applied_twice :
-  forall (f : boolean -> boolean),
-  (forall (x : boolean), f x = x) ->
-  forall (b : boolean), f (f b) = b.
+  forall (f : bool -> bool),
+  (forall (x : bool), f x = x) ->
+  forall (b : bool), f (f b) = b.
 Proof.
   intros f H1 b.
   rewrite -> H1.
@@ -473,14 +473,14 @@ Qed.
   : option (nat * string) := None. *)
 
 Theorem manual_grade_for_negation_fn_applied_twice :
-  forall (b : boolean) , negb (negb b) = b .
+  forall (b : bool) , negb (negb b) = b .
 Proof.
   intros b.
   destruct b ; reflexivity.
 Qed.
 
 Theorem andb_eq_orb :
-  forall (b c : boolean),
+  forall (b c : bool),
   (andb b c = orb b c) ->
   b = c.
 Proof.
@@ -685,7 +685,7 @@ Qed.
 
 Theorem no_penalty_for_mostly_on_time :
   forall (late_days : nat) (g : grade),
-    (late_days <? 9 = ttrue) ->
+    (late_days <? 9 = true) ->
     apply_late_policy late_days g = g.
 Proof.
   intros d g H1.
@@ -696,8 +696,8 @@ Qed.
 
 Theorem grade_lowered_once :
   forall (late_days : nat) (g : grade),
-    (late_days <? 9 = ffalse) ->
-    (late_days <? 17 = ttrue) ->
+    (late_days <? 9 = false) ->
+    (late_days <? 17 = true) ->
     (apply_late_policy late_days g) = (lower_grade g).
 Proof.
   intros l g H1 H2.

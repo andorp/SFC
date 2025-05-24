@@ -188,7 +188,7 @@ Definition bag := natlist.
 Fixpoint count (v : nat) (s : bag) : nat :=
   match s with
   | [] => 0
-  | (h :: t) => if (Nat.eqb v h) then 1 + count v t else count v t
+  | (h :: t) => if eqb v h then 1 + count v t else count v t
   end.
 
 Example test_count1: count 1 [1;2;3;1;4;1] = 3.
@@ -215,7 +215,7 @@ Proof. reflexivity. Qed.
 Fixpoint member (v : nat) (s : bag) : bool :=
   match s with
   | [] => false
-  | (h :: t) => if Nat.eqb h v then true else member v t
+  | (h :: t) => if eqb h v then true else member v t
   end.
 
 Example test_member1: member 1 [1;4;1] = true.
@@ -227,7 +227,7 @@ Proof. reflexivity. Qed.
 Fixpoint remove_one (v : nat) (s : bag) : bag :=
   match s with
   | [] => []
-  | (h :: t) => if Nat.eqb h v then t else h :: remove_one v t
+  | (h :: t) => if eqb h v then t else h :: remove_one v t
   end.
 
 Example test_remove_one1:
@@ -249,7 +249,7 @@ Proof. reflexivity. Qed.
 Fixpoint remove_all (v:nat) (s:bag) : bag :=
   match s with
   | [] => []
-  | (h :: t) => if Nat.eqb h v then remove_all v t else h :: remove_all v t
+  | (h :: t) => if eqb h v then remove_all v t else h :: remove_all v t
   end.
 
 Example test_remove_all1: count 5 (remove_all 5 [2;1;5;4;1]) = 0.
@@ -277,7 +277,7 @@ Example test_included2: included [1;2;2] [2;1;4;1] = false.
 Proof. reflexivity. Qed.
 
 Lemma nat_eqb_refl : forall (n : nat) ,
-  Nat.eqb n n = Datatypes.true.
+  eqb n n = true.
 Proof.
   intros n.
   induction n as [|n IH].
@@ -462,12 +462,12 @@ Proof.
       reflexivity.
 Qed.
 
-Fixpoint eqblist (l1 l2 : natlist) : Datatypes.bool :=
+Fixpoint eqblist (l1 l2 : natlist) : bool :=
   match l1 , l2 with
   | []         , []         => true
   | ( _ ::  _) , []         => false
   | []         , ( _ ::  _) => false
-  | (h1 :: t1) , (h2 :: t2) => Nat.eqb h1 h2 && eqblist t1 t2
+  | (h1 :: t1) , (h2 :: t2) => eqb h1 h2 && eqblist t1 t2
   end.
 
 Example test_eqblist2 :
@@ -491,14 +491,14 @@ Proof.
 Qed.
 
 Theorem count_member_nonzero : forall (s : bag),
-  1 <=? (count 1 (1 :: s)) = ttrue.
+  1 <=? (count 1 (1 :: s)) = true.
 Proof.
   intros s.
   reflexivity.
 Qed.
 
 Theorem leb_n_Sn : forall (n : nat) ,
-  n <=? (S n) = ttrue.
+  n <=? (S n) = true.
 Proof.
   intros n.
   induction n as [|n IH].
@@ -508,7 +508,7 @@ Proof.
 Qed.
 
 Theorem remove_does_not_increase_count : forall (s : bag) ,
-  (count 0 (remove_one 0 s)) <=? (count 0 s) = ttrue.
+  (count 0 (remove_one 0 s)) <=? (count 0 s) = true.
 Proof.
   intros s.
   induction s as [|x s IH].
@@ -602,7 +602,7 @@ Definition eqb_id (x1 x2 : id) :=
   | Id n1, Id n2 => n1 =? n2
   end.
 
-Theorem eqb_id_refl : forall x, eqb_id x x = ttrue.
+Theorem eqb_id_refl : forall x, eqb_id x x = true.
 Proof.
   intros x.
   destruct x.
@@ -643,10 +643,11 @@ Qed.
 
 Theorem update_neq :
   forall (d : partial_map) (x y : id) (o : nat),
-    eqb_id x y = ffalse -> find x (update d y o) = find x d.
+    eqb_id x y = false -> find x (update d y o) = find x d.
 Proof.
   intros d x y o Hnot.
   simpl.
   rewrite Hnot.
   reflexivity.
 Qed.
+

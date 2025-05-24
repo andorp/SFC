@@ -189,7 +189,7 @@ Example test_split:
   split [(1,false);(2,false)] = ([1;2],[false;false]).
 Proof. reflexivity. Qed.
 
-Module OptionPlayground.
+(* Module OptionPlayground. *)
 
 Inductive option (X:Type) : Type :=
   | Some (x : X)
@@ -199,7 +199,7 @@ Arguments Some {X}.
 
 Arguments None {X}.
 
-End OptionPlayground.
+(* End OptionPlayground. *)
 
 Fixpoint nth_error {X : Type} (l : list X) (n : nat)
                    : option X :=
@@ -458,8 +458,16 @@ Example plus_3 :
   plus (plus two two) three = plus one (plus three three).
 Proof. reflexivity. Qed.
 
+(* n * m *)
 Definition mult (n m : cnat) : cnat := fun X f x =>
   n X (m X f) x.
+
+(*
+n X f x => f (f (f ... x))
+           ------ n ------
+
+f (n X f x) => f (f (f (f ... x)))
+*)
 
 Example mult_1 : mult one one = one.
 Proof. reflexivity. Qed.
@@ -469,3 +477,18 @@ Proof. reflexivity. Qed.
 
 Example mult_3 : mult two three = plus three three.
 Proof. reflexivity. Qed.
+
+Definition exp (n m : cnat) : cnat :=
+  fun (X : Type) => m (X -> X) (n X).
+
+Example exp_1 : exp two two = plus two two.
+Proof. reflexivity. Qed.
+
+Example exp_2 : exp three zero = one.
+Proof. reflexivity. Qed.
+
+Example exp_3 : exp three two = plus (mult two (mult two two)) one.
+Proof. reflexivity. Qed.
+
+End Church.
+
