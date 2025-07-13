@@ -231,3 +231,171 @@ Proof.
 Qed.
 
 (* Varying the Induction Hypothesis *)
+
+Theorem double_injective_FAILED : forall n m ,
+  double n = double m ->
+  n = m.
+Proof.
+  intros n m.
+  induction n as [|n IH].
+  - simpl.
+    intros H1.
+    destruct m as [| m'] eqn:E.
+    + reflexivity.
+    + discriminate H1.
+  - intros H1.
+    destruct m as [|m'] eqn:E.
+    + discriminate H1.
+    + f_equal.
+Abort.
+
+Theorem double_injective : forall n m,
+  double n = double m ->
+  n = m.
+Proof.
+  intros n.
+  induction n as [| n IH].
+  - simpl.
+    intros m H1.
+    destruct m as [| m].
+    + reflexivity.
+    + exfalso.
+      discriminate H1.
+  - intros m H1.
+    destruct m as [| m].
+    + exfalso.
+      discriminate H1.
+    + f_equal.
+      apply IH.
+      simpl in H1.
+      injection H1 as H1.
+      assumption.
+Qed.
+
+Theorem eqb_true : forall n m,
+  n =? m = true -> n = m.
+Proof.
+  intros n.
+  induction n as [|n IH].
+  - intros m H1.
+    destruct m as [| m].
+    + reflexivity.
+    + discriminate.
+  - intros m H1.
+    destruct m as [| m].
+    + discriminate.
+    + f_equal.
+      apply IH.
+      simpl in H1.
+      assumption.
+Qed.
+
+
+Theorem plus_n_n_injective : forall n m,
+  n + n = m + m ->
+  n = m.
+Proof.
+  intros n.
+  induction n as [|n IHn].
+  - simpl.
+    intros m H1.
+    destruct m as [|m].
+    + reflexivity.
+    + discriminate.
+  - simpl.
+    intros m.
+    destruct m as [|m].
+    + simpl. intros H1. discriminate.
+    + simpl.
+      intros H1.
+      rewrite IHn with m.
+      1: reflexivity. 
+      rewrite <- plus_n_Sm in H1.
+      rewrite <- plus_n_Sm in H1.
+      apply S_ in H1.
+      apply S_injective in H1.
+      assumption.
+Qed.
+
+Theorem double_injective_take2 : forall n m,
+  double n = double m ->
+  n = m.
+Proof.
+  intros n m.
+  generalize dependent n.
+Admitted.
+
+Theorem nth_error_after_last: forall
+  (n : nat) (X : Type) (l : list X),
+  length l = n ->
+  nth_error l n = None.
+Proof.
+  intros n X.
+  induction n as [|n IHn] ; intros l.
+  - destruct l as [|h l].
+    + reflexivity.
+    + discriminate.
+  - destruct l as [|h l].
+    + discriminate.
+    + intro H1.
+      simpl.
+      rewrite IHn ; try reflexivity.
+      simpl in H1.
+      apply S_injective.
+      assumption.
+Qed.
+
+(* TODO: Renaming *)
+Theorem combine_split1 : forall X Y (l : list (X * Y)) ,
+  combine (fst (split1 l)) (snd (split1 l)) = l.
+Proof.
+  intros X Y l.
+  induction l as [|(x,y) l IH].
+  - reflexivity.
+  - simpl.
+    rewrite IH.
+    reflexivity.
+Qed.
+
+(* TODO: Use library *)
+Lemma fst_inversion : forall X Y (z : (X * Y)) (x : X) (y : Y),
+  z = (x,y) ->
+  fst z = x.
+Proof.
+  intros X Y z x y H1.
+  rewrite H1.
+  reflexivity.
+Qed.
+
+(* TODO: Use library *)
+Lemma snd_inversion : forall X Y (z : (X * Y)) (x : X) (y : Y),
+  z = (x,y) ->
+  snd z = y.
+Proof.
+  intros X Y z x y H1.
+  rewrite H1.
+  reflexivity.
+Qed.
+
+(* TODO: Renaming *)
+Theorem combine_split2 : forall X Y (l : list (X * Y)) l1 l2,
+  split1 l = (l1, l2) ->
+  combine l1 l2 = l.
+Proof.
+  intros X Y l l1 l2 H1.
+  assert (H2 := H1).
+  apply fst_inversion in H1.
+  apply snd_inversion in H2.
+  rewrite <- H1 , <- H2.
+  apply combine_split1.
+Qed.
+
+Theorem combine_split : forall X Y (l : list (X * Y)) l1 l2,
+  split l = (l1, l2) ->
+  combine l1 l2 = l.
+Proof.
+  intros X Y l l1 l2 H1.
+  apply combine_split2.
+  rewrite <- H1.
+  apply split1_split_eq.
+Qed.

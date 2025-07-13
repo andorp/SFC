@@ -185,6 +185,34 @@ Fixpoint split {X Y : Type} (l : list (X * Y)) : (list X) * (list Y) :=
     end
   end.
 
+(* TODO: Rename *)
+Fixpoint split1 {X Y : Type} (l : list (X * Y)) : (list X) * (list Y) :=
+  match l with
+  | [] => ([],[])
+  | ((x,y) :: xys) => (x::fst (split1 xys),y::snd (split1 xys))
+  end.
+
+(* TODO: Use lbirary function *)
+Lemma tuple_inversion : forall X Y (z : (X * Y)) ,
+  z = (fst z, snd z).
+Proof.
+  intros X Y z.
+  destruct z as [x y].
+  reflexivity.
+Qed.
+
+Lemma split1_split_eq : forall X Y (l : list (X * Y)) ,
+  split1 l = split l.
+Proof.
+  intros X Y l.
+  induction l as [|(x,y) l IH].
+  - reflexivity.
+  - simpl.
+    rewrite (tuple_inversion _ _ (split l)).
+    rewrite IH.
+    reflexivity.
+Qed.
+
 Example test_split:
   split [(1,false);(2,false)] = ([1;2],[false;false]).
 Proof. reflexivity. Qed.
