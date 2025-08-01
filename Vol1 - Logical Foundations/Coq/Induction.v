@@ -94,7 +94,7 @@ Proof.
     reflexivity.
 Qed.
 
-(* Theorem eqb_refl : forall (n:nat),
+Theorem eqb_refl : forall (n:nat),
   (n =? n) = true.
 Proof.
   intros n.
@@ -113,7 +113,7 @@ Proof.
   - rewrite IH.
     rewrite negb_involutive.
     reflexivity.
-Qed. *)
+Qed.
 
 Theorem mult_0_plus' : forall (n m : nat),
   (n + 0 + 0) * m = n * m.

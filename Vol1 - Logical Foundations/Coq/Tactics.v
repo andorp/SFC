@@ -312,7 +312,7 @@ Proof.
       1: reflexivity. 
       rewrite <- plus_n_Sm in H1.
       rewrite <- plus_n_Sm in H1.
-      apply S_ in H1.
+      apply S_injective in H1.
       apply S_injective in H1.
       assumption.
 Qed.

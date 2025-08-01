@@ -628,9 +628,15 @@ Qed.
 
 (* Working with Decidable Properties *)
 
-Theorem even_S : forall (n: nat),
-  even (S n) = negb (even n).
-Proof. Admitted.
+From LF Require Export Induction.
+
+Lemma even_double : forall k, even (double k) = true.
+Proof.
+  intros k.
+  induction k as [|k IH].
+  - reflexivity.
+  - assumption.
+Qed.
 
 Lemma even_double_conv : forall n, exists k,
   n = if even n then double k else S (double k).
@@ -649,4 +655,148 @@ Proof.
       reflexivity.
 Qed.
 
+Theorem even_bool_prop : forall n,
+  even n = true <-> Even n.
+Proof.
+  intros n. split ; intros H1.
+  - destruct (even_double_conv n) as [k H2].
+    exists k.
+    rewrite H1 in H2.
+    assumption.
+  - destruct H1 as [k H2].
+    rewrite H2.
+    rewrite even_double.
+    reflexivity.
+Qed.
 
+Theorem eqb_eq : forall n1 n2 : nat,
+  n1 =? n2 = true <-> n1 = n2.
+Proof.
+  intros n1 n2. split ; intros H1.
+  - apply eqb_true. assumption.
+  - subst. rewrite eqb_refl. reflexivity.
+Qed.
+
+Example not_even_1001' : ~(Even 1001).
+Proof.
+  intros H1.
+  apply even_bool_prop in H1.
+  simpl in H1.
+  discriminate.
+Qed.
+
+Lemma plus_eqb_example : forall n m p : nat,
+  n =? m = true -> n + p =? m + p = true.
+Proof.
+  intros n m p H1.
+  apply eqb_true in H1.
+  subst.
+  apply eqb_refl.
+Qed.
+
+Theorem andb_true_iff : forall b1 b2:bool,
+  b1 && b2 = true <-> b1 = true /\ b2 = true.
+Proof.
+  intros b1 b2. split ; destruct b1 , b2 ; intros H1 ; try discriminate.
+  - split ; reflexivity.
+  - reflexivity.
+  - destruct H1 as [H1 H2]. discriminate.
+  - destruct H1 as [H1 H2]. discriminate.
+  - destruct H1 as [H1 H2]. discriminate.
+Qed.
+
+Theorem orb_true_iff : forall b1 b2,
+  b1 || b2 = true <-> b1 = true \/ b2 = true.
+Proof.
+  intros b1 b2. split ; destruct b1 , b2 ; intros H1 ; try reflexivity.
+  - left. reflexivity.
+  - left. reflexivity.
+  - right. reflexivity.
+  - discriminate.
+  - destruct H1 as [H1 | H1] ; discriminate.
+Qed.
+
+Theorem eqb_neq : forall x y : nat,
+  x =? y = false <-> x <> y.
+Proof.
+  intros x y.
+  split ; intros H1.
+  - intros H2.
+    subst.
+    rewrite eqb_refl in H1.
+    discriminate.
+  - destruct (x =? y) eqn:H2.
+    + apply eqb_true in H2.
+      contradiction.
+    + reflexivity.
+Qed.
+
+Fixpoint eqb_list
+  {A : Type}
+  (eqb : A -> A -> bool)
+  (l1 l2 : list A) : bool :=
+  match l1, l2 with
+  | []     , []      => true
+  | (_::_) , []      => false
+  | []     , (_::_)  => false
+  | (x::xs), (y::ys) => (eqb x y) && (eqb_list eqb xs ys)
+  (* | (x::xs), (y::ys) => if (eqb x y) then (eqb_list xs ys) else false *)
+  end.
+
+Theorem eqb_list_true_iff :
+  forall A (eqb : A -> A -> bool),
+  (forall a1 a2, eqb a1 a2 = true <-> a1 = a2) ->
+  forall l1 l2, eqb_list eqb l1 l2 = true <-> l1 = l2.
+Proof.
+  intros A eqb Eq l1.
+  induction l1 as [|h1 l1 IH1] ; intros l2.
+  - destruct l2 as [|h2 l2].
+    + split ; reflexivity.
+    + split ; intros H1 ; discriminate.
+  - induction l2 as [|h2 l2 IH2].
+    + split ; intros H1 ; discriminate.
+    + split ; intros H1.
+      * simpl in H1.
+        apply andb_true_iff in H1.
+        destruct H1 as [H1 H2].
+        apply IH1 in H2.
+        apply Eq in H1.
+        subst.
+        reflexivity.
+      * simpl.
+        apply andb_true_iff.
+        injection H1.
+        intros H2 H3.
+        apply Eq in H3.
+        apply IH1 in H2.
+        split ; assumption.
+Qed.
+
+Fixpoint forallb {X : Type} (test : X -> bool) (l : list X) : bool :=
+  match l with
+  | []      => true
+  | (x::xs) => test x && forallb test xs
+  end.
+
+Theorem forallb_true_iff : forall X test (l : list X),
+  forallb test l = true <-> All (fun x => test x = true) l.
+Proof.
+  intros X test l.
+  induction l as [|h l IH].
+  - split ; intros H1.
+    + apply I.
+    + reflexivity.
+  - split ; intros H1.
+    + simpl in H1.
+      apply andb_true_iff in H1.
+      destruct H1 as [H1 H2].
+      apply IH in H2.
+      split ; assumption.
+    + destruct H1 as [H1 H2].
+      apply IH in H2.
+      simpl.
+      apply andb_true_iff.
+      split ; assumption.
+Qed.
+
+(* The Logic of Coq *)
