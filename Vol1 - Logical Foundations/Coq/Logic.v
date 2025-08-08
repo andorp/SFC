@@ -800,3 +800,253 @@ Proof.
 Qed.
 
 (* The Logic of Coq *)
+
+Definition functional_extensionality_def :=
+  forall
+    {X Y : Type}
+    {f g : X -> Y} ,
+  (forall (x:X) , f x = g x) ->
+  f = g.
+
+Definition functional_extensionality_dep_def :=
+  forall
+    {X : Type}
+    {Y : X -> Type}
+    {f g : forall (x:X) , Y x} ,
+  (forall (x:X) , f x = g x) ->
+  f = g.
+
+Lemma FEDepImplies :
+  functional_extensionality_dep_def -> functional_extensionality_def.
+Proof.
+  intros H1 X Y f g H2.
+  apply H1.
+  assumption.
+Qed.
+
+Axiom functional_extensionality :
+  forall
+    {X Y : Type}
+    {f g : X -> Y} ,
+  (forall (x:X) , f x = g x) ->
+  f = g.
+
+(* Axiom functional_extensionality_dep :
+  forall
+    {X : Type}
+    {Y : X -> Type}
+    {f g : forall (x:X) , Y x} ,
+  (forall (x:X) , f x = g x) ->
+  f = g. *)
+
+Example function_equality_ex2 :
+  (fun x => plus x 1) = (fun x => plus 1 x).
+Proof.
+  apply functional_extensionality.
+  intros x.
+  apply add_comm.
+Qed.
+
+(*
+Fixpoint rev (l:natlist) : natlist :=
+  match l with
+  | []     => []
+  | h :: t => rev t ++ [h]
+  end.
+*)
+
+Fixpoint rev_append {X} (l1 l2 : list X) : list X :=
+  match l1 with
+  | []       => l2
+  | x :: l1' => rev_append l1' (x :: l2)
+  end.
+
+Lemma rev_append_correct : forall X (l1 l2 : list X) ,
+  rev_append l1 l2 = rev l1 ++ l2.
+Proof.
+  intros X l1.
+  induction l1 as [|h1 l1 IH1] ; intro l2.
+  - reflexivity.
+  - simpl.
+    rewrite IH1.
+    rewrite <- app_assoc.
+    reflexivity.
+Qed.
+
+Definition tr_rev {X} (l : list X) : list X :=
+  rev_append l [].
+
+Theorem tr_rev_correct : forall X, @tr_rev X = @rev X.
+Proof.
+  intros X.
+  apply functional_extensionality.
+  intros l.
+  unfold tr_rev.
+  rewrite rev_append_correct.
+  apply app_nil_r.
+Qed.
+
+(* Classical vs. Constructive Logic *)
+
+Definition excluded_middle := forall P : Prop,
+  P \/ ~ P.
+
+Theorem restricted_excluded_middle : forall P b,
+  (P <-> b = true) -> P \/ ~ P.
+Proof.
+  intros P b [H1 H2].
+  destruct b eqn:H3.
+  - left.
+    apply H2.
+    reflexivity.
+  - right.
+    intros H4.
+    apply H1 in H4.
+    discriminate.
+Qed.
+
+Theorem restricted_excluded_middle_eq : forall (n m : nat),
+  n = m \/ n <> m.
+Proof.
+  intros n.
+  induction n as [|n IH1] ; intros m.
+  - destruct m as [|m].
+    + left. reflexivity.
+    + right. intros H1. discriminate.
+  - destruct m as [|m].
+    + right. intros H1. discriminate.
+    + specialize (IH1 m).
+      destruct IH1 as [H1 | H1].
+      * left. subst. reflexivity.
+      * right. intros H2. apply H1. injection H2. intros H3. assumption.
+Qed.
+
+Theorem excluded_middle_irrefutable: forall (P : Prop),
+  ~ ~ (P \/ ~ P).
+Proof.
+  intros P H1.
+  assert (~P) as H2.
+  { intros H2. apply H1. left. assumption. }
+  apply H1.
+  right.
+  assumption.
+Qed.
+
+Theorem not_exists_dist :
+  excluded_middle ->
+  forall (X:Type) (P : X -> Prop),
+    ~ (exists x, ~ P x) -> (forall x, P x).
+Proof.
+  intros LEM X P H1 x.
+  assert (P x \/ ~ (P x)) as H2. { apply LEM. }
+  destruct H2 as [H2 | H2].
+  - assumption.
+  - exfalso.
+    apply H1.
+    exists x.
+    assumption.
+Qed.
+
+(*
+Definition excluded_middle := forall P : Prop,
+  P \/ ~ P.
+*)
+
+Definition peirce := forall P Q: Prop,
+  ((P -> Q) -> P) -> P.
+
+Definition double_negation_elimination := forall P:Prop,
+  ~~P -> P.
+
+Definition de_morgan_not_and_not := forall P Q:Prop,
+  ~(~P /\ ~Q) -> P \/ Q.
+
+Definition implies_to_or := forall P Q:Prop,
+  (P -> Q) -> (~P \/ Q).
+
+Definition consequentia_mirabilis := forall P:Prop,
+  (~P -> P) -> P.
+
+Theorem firstLEM :
+  excluded_middle -> peirce.
+Proof.
+  intros LEM P Q H1.
+  assert (P \/ ~P) as H2.
+  { apply LEM. }
+  destruct H2 as [H2 | H2].
+  - assumption.
+  - apply H1.
+    intros H3.
+    contradiction.
+Qed.
+
+Theorem secondLEM :
+  peirce -> double_negation_elimination.
+Proof.
+  intros PRC P H1.
+  unfold peirce in PRC.
+  apply PRC with False.
+  intros H2.
+  contradiction.
+Qed.
+
+Theorem thirdLEM :
+  double_negation_elimination -> de_morgan_not_and_not.
+Proof.
+  intros DNE P Q H1.
+  unfold double_negation_elimination in DNE.
+  apply DNE.
+  intros H2.
+  assert (~P) as H3.
+  { intros H3.
+    apply H2.
+    left.
+    assumption.
+  }
+  assert (~Q) as H4.
+  { intros H4.
+    apply H2.
+    right.
+    assumption.
+  }
+  apply H1.
+  split ; assumption.
+Qed.
+
+Theorem forthLEM :
+  de_morgan_not_and_not -> implies_to_or.
+Proof.
+  intros DM P Q H1.
+  unfold de_morgan_not_and_not in DM.
+  apply DM.
+  intros [H2 H3].
+  apply H2.
+  intros H4.
+  apply H1 in H4.
+  contradiction.
+Qed.
+
+Theorem fifthLEM :
+  implies_to_or -> consequentia_mirabilis.
+Proof.
+  intros ITO P H1.
+  unfold implies_to_or in ITO.
+  assert (~P \/ P) as H2.
+  { apply ITO. intros H2. assumption. }
+  destruct H2 as [H2 | H2]. 2: assumption.
+  apply H1.
+  assumption.
+Qed.
+
+Theorem sixthLEM :
+  consequentia_mirabilis -> excluded_middle.
+Proof.
+  intros CM P.
+  unfold consequentia_mirabilis in CM.
+  apply CM.
+  intros H1.
+  assert (~P) as H2.
+  { intros H2. apply H1. left. assumption. }
+  right.
+  assumption.
+Qed.
