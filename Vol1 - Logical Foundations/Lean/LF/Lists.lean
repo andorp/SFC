@@ -117,3 +117,113 @@ def alternate : NatList -> NatList -> NatList
 theorem testAlternate1:
   alternate (1;2;3;[]) (4;5;6;[]) = (1;4;2;5;3;6;[])
 := by rfl
+
+def Bag := NatList
+
+def count (v : Nat) (s : Bag) : Nat :=
+  match s with
+  | []      => 0
+  | (h ; t) => if h == v then Nat.succ (count v t) else count v t
+
+def sum : Bag -> Bag -> Bag := app
+
+def add (v : Nat) (s : Bag) : Bag := v ; s
+
+def member (v : Nat) (s : Bag) : Bool :=
+  match s with
+  | [] => False
+  | (h ; t) => if h == v then True else member v t
+
+def removeOne (v : Nat) (s : Bag) : Bag :=
+  match s with
+  | [] => []
+  | (h ; t) => if h == v then t else h ; removeOne v t
+
+def removeAll (v : Nat) (s : Bag) : Bag :=
+  match s with
+  | [] => []
+  | (h ; t) => if h == v then removeAll v t else h ; removeAll v t
+
+def included (s1 : Bag) (s2 : Bag) : Bool :=
+  match s1 with
+  | [] => True
+  | (h ; t) => member h s2 && included t (removeOne h s2)
+
+theorem addIncCount
+  (x : Nat)
+  (b : Bag) :
+  -----------
+  count x (add x b) = .succ (count x b)
+:= by
+  cases b <;> simp [add, count]
+
+theorem nilApp
+  (l : NatList) :
+  ---------------
+  [] ++ l = l
+:= by rfl
+
+theorem predTailLength
+  (l : NatList) :
+  ---------------
+  Nat.pred (length l) = length (tl l)
+:= by cases l <;> rfl
+
+theorem appAssoc
+  (l1 l2 l3 : NatList) :
+  ----------------------
+  (l1 ++ l2) ++ l3 = l1 ++ (l2 ++ l3)
+:= by
+  induction l1 with
+  | nil => rfl
+  | cons x l1 ih =>
+    simp [app]
+    rw [ih]
+
+theorem repeatPlus
+  (c1 c2 n : Nat) :
+  -----------------
+  (repeatn n c1) ++ (repeatn n c2) = repeatn n (c1 + c2)
+:= by
+  induction c1 with
+  | zero =>
+    simp [repeatn,app]
+  | succ n ih =>
+    simp [repeatn,app]
+    rw [ih]
+    simp [Nat.succ_add,repeatn]
+
+def rev (l : NatList) : NatList :=
+  match l with
+  | [] => .nil
+  | h ; t => (rev t) ++ (h ; [])
+
+theorem appLength
+  (l1 l2 : NatList) :
+  -------------------
+  length (l1 ++ l2) = (length l1) + (length l2)
+:= by
+  induction l1 with
+  | nil =>
+    simp [app,length]
+  | cons h l1 ih =>
+    simp
+      [ app
+      , length
+      , Nat.add_assoc
+      , Nat.add_comm
+      , <- Nat.add_assoc
+      ]
+    rw [Nat.add_comm, ih]
+
+theorem revLength
+  (l : NatList) :
+  ---------------
+  length (rev l) = length l
+:= by
+  induction l with
+  | nil =>
+    simp [rev]
+  | cons h l ih =>
+    simp [rev,length,appLength]
+    rw [ih]
