@@ -227,3 +227,73 @@ theorem revLength
   | cons h l ih =>
     simp [rev,length,appLength]
     rw [ih]
+
+theorem appNilR
+  (l : NatList) :
+  ---------------
+  l ++ [] = l
+:= by
+  induction l with
+  | nil => rfl
+  | cons h l ih =>
+    rw [app, ih]
+
+theorem revAppDist
+  (l1 l2 : NatList) :
+  -------------------
+  rev (l1 ++ l2) = (rev l2) ++ (rev l1)
+:= by
+  induction l1 with
+  | nil =>
+    simp [app, rev, appNilR]
+  | cons h l1 ih =>
+    simp [app,rev]
+    rw [ih,appAssoc]
+
+theorem revApp
+  (h : Nat)
+  (l : NatList) :
+  ---------------
+  rev (h ; l) = rev l ++ (h ; [])
+:= by cases l <;> simp [rev]
+
+theorem revInvolutive
+  (l : NatList) :
+  ---------------
+  rev (rev l) = l
+:= by
+  induction l with
+  | nil =>
+    simp [rev]
+  | cons h l ih =>
+    simp [rev,revAppDist,app]
+    rw [ih]
+
+theorem appAssoc4
+  (l1 l2 l3 l4 : NatList) :
+  -------------------------
+  l1 ++ (l2 ++ (l3 ++ l4)) = ((l1 ++ l2) ++ l3) ++ l4
+:= by
+  induction l1 with
+  | nil =>
+    simp [app, appAssoc]
+  | cons h l1 ih =>
+    simp [app]
+    rw [<- ih]
+
+theorem nonZerosAppDist
+  (l1 l2 : NatList) :
+  -------------------
+  nonZeros (l1 ++ l2) = (nonZeros l1) ++ (nonZeros l2)
+:= by
+  induction l1 with
+  | nil =>
+    simp [app, nonZeros]
+  | cons h l1 ih =>
+    simp [app]
+    cases h with
+    | zero =>
+      simp [nonZeros, ih]
+    | succ h =>
+      simp [nonZeros, ih]
+      rfl
