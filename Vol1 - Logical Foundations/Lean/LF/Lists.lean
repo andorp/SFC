@@ -297,3 +297,123 @@ theorem nonZerosAppDist
     | succ h =>
       simp [nonZeros, ih]
       rfl
+
+def eqList (l1 l2 : NatList) : Bool :=
+  match l1 , l2 with
+  | []        , []        => true
+  | (_ ; _)   , []        => false
+  | []        , (_ ; _)   => false
+  | (h1 ; t1) , (h2 ; t2) => h1 == h2 && eqList t1 t2
+
+theorem eqListRefl
+  (l : NatList) :
+  ---------------
+  true = eqList l l
+:= by
+  induction l with
+  | nil =>
+    rfl
+  | cons h l ih =>
+    simp [eqList]
+    rw [ih]
+
+theorem involutionInjective
+  (f : Nat -> Nat)
+  (hInv : (forall (n : Nat), n = f (f n))) :
+  forall (n1 n2 : Nat), f n1 = f n2 -> n1 = n2
+:= by
+  intros n1 n2 h
+  rw [hInv n1, hInv n2, h]
+
+theorem revInjective
+  (l1 l2 : NatList)
+  (h : rev l1 = rev l2) :
+  -----------------------
+  l1 = l2
+:= by
+  rw [<- revInvolutive l1]
+  rw [<- revInvolutive l2]
+  rw [h]
+
+inductive NatOption where
+  | some (n : Nat)
+  | none
+
+def nthError (l : NatList) (n : Nat) : NatOption :=
+  match l with
+  | .nil => .none
+  | .cons h t => match n with
+    | .zero => .some h
+    | .succ n => nthError t n
+
+def optionElim (d : Nat) (o : NatOption) : Nat :=
+  match o with
+  | .some n => n
+  | .none   => d
+
+def hdError (l : NatList) : NatOption :=
+  match l with
+  | .nil      => .none
+  | .cons h _ => .some h
+
+theorem optionElimHd
+  (l : NatList)
+  (d : Nat)    :
+  --------------
+  hd d l = optionElim d (hdError l)
+:= by
+  induction l with
+  | nil =>
+    rfl
+  | cons h l ih =>
+    simp [hd,hdError,optionElim]
+
+inductive Idx where
+  | idx (n : Nat)
+  deriving
+    DecidableEq
+
+theorem eqIdxRefl
+  (x : Idx) :
+  (x == x) = true
+:= by
+  cases x
+  simp
+
+inductive PartialMap where
+  | empty
+  | record (i : Idx) (v : Nat) (m : PartialMap)
+
+def update
+  (d : PartialMap)
+  (x : Idx)
+  (v : Nat)
+:=
+  PartialMap.record x v d
+
+def find (x : Idx) (d : PartialMap) : NatOption :=
+  match d with
+  | .empty => .none
+  | .record y v d' => if x == y then .some v else find x d'
+
+theorem updateEq
+  (d : PartialMap)
+  (x : Idx)
+  (v : Nat)       :
+  -----------------
+  find x (update d x v) = .some v
+:= by
+  simp [update, find]
+
+theorem updateNEq
+  (d  : PartialMap)
+  (x  : Idx)
+  (o  : Nat)
+  (H1 : (x == y) = false) :
+  -----------------
+  find x (update d y o) = find x d
+:= by
+  simp [update, find]
+  intros H2
+  simp at H1
+  contradiction
